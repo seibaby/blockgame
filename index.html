@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Clump Marker Game</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 20px;
+    }
+    #controls {
+      margin-bottom: 10px;
+    }
+    #game-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .counter {
+      text-align: center;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+      min-width: 50px;
+    }
+    .counter-value {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .green-counter {
+      border-color: green;
+      background-color: #e8f5e8;
+    }
+    .green-counter .counter-value {
+      color: green;
+    }
+    .yellow-counter {
+      border-color: gold;
+      background-color: #fffacd;
+    }
+    .yellow-counter .counter-value {
+      color: #b8860b;
+    }
+    .yellow-counter.limit-reached {
+      border-color: grey;
+      background-color: #f0f0f0;
+    }
+    .yellow-counter.limit-reached .counter-value {
+      color: grey;
+    }
+    #grid {
+      display: grid;
+      gap: 1px;
+    }
+    .cell {
+      width: 24px;
+      height: 24px;
+      background-color: white;
+      border: 1px solid black;
+      box-sizing: border-box;
+      position: relative;
+    }
+    .colored {
+      background-color: #4682B4; /* steel blue */
+    }
+    .blocker {
+      background-color: #555;
+    }
+    .marker-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .green .marker-overlay {
+      background-color: green;
+    }
+    .yellow .marker-overlay {
+      background-color: gold;
+    }
+    .invalid-top {
+      border-top: 2px solid red !important;
+    }
+    .invalid-bottom {
+      border-bottom: 2px solid red !important;
+    }
+    .invalid-left {
+      border-left: 2px solid red !important;
+    }
+    .invalid-right {
+      border-right: 2px solid red !important;
+    }
+    .too-small .marker-overlay {
+      animation: blink 1s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    .denied-yellow .marker-overlay {
+      background-color: gold;
+      animation: fadeOut 0.5s ease-out forwards;
+    }
+    @keyframes fadeOut {
+      0% { opacity: 0.5; }
+      100% { opacity: 0; }
+    }
+    #coloredCountInput, #blockerCountInput {
+      width: 40px;
+    }
+    #seedDisplay {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+    #result {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="gridSizeSelect">Grid Size:</label>
+    <select id="gridSizeSelect" onchange="updateGridSize()">
+      <option value="8">8x8</option>
+      <option value="12">12x12</option>
+      <option value="16" selected>16x16</option>
+      <option value="20">20x20</option>
+      <option value="24">24x24</option>
+    </select>
+    <input id="coloredCountInput" type="number" min="1" max="576" />
+    <input id="blockerCountInput" type="number" min="0" max="576" />
+    <button onclick="createRandomGrid()">New Game</button>
+    <button onclick="createTodaysGrid()">Today's Game</button>
+    <button onclick="clearMarkers()">Clear All</button>
+  </div>
+  
+  <div id="game-container">
+    <div class="counter green-counter">
+      <div class="counter-value" id="green-count">0</div>
+    </div>
+    <div id="grid"></div>
+    <div class="counter yellow-counter" id="yellow-counter">
+      <div class="counter-value" id="yellow-count">12</div>
+    </div>
+  </div>
+  
+  <div id="result"></div>
+  <div id="seedDisplay"></div>
+
+  <script>
+    let gridSize = 16;
+    let totalCells = gridSize * gridSize;
+    const grid = document.getElementById('grid');
+    const resultDiv = document.getElementById('result');
+    const seedDisplay = document.getElementById('seedDisplay');
+    const coloredCountInput = document.getElementById('coloredCountInput');
+    const blockerCountInput = document.getElementById('blockerCountInput');
+    const gridSizeSelect = document.getElementById('gridSizeSelect');
+    const greenCountDisplay = document.getElementById('green-count');
+    const yellowCountDisplay = document.getElementById('yellow-count');
+    const yellowCounterDiv = document.getElementById('yellow-counter');
+
+    let cells = [];
+    let markerState = [];
+    let coloredCells = new Set();
+    let blockerCells = new Set();
+    let rng;
+    let greenCount = 0;
+    let yellowCount = 0;
+    const maxYellowMarkers = 12;
+
+    // Simple seeded RNG using a Linear Congruential Generator
+    class SeededRNG {
+      constructor(seed) {
+        this.seed = this.hashString(seed);
+      }
+
+      hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          const char = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + char;
+          hash = hash & hash; // Convert to 32-bit integer
+        }
+        return Math.abs(hash);
+      }
+
+      next() {
+        this.seed = (this.seed * 1664525 + 1013904223) % Math.pow(2, 32);
+        return this.seed / Math.pow(2, 32);
+      }
+    }
+
+    function getTodaysSeed() {
+      const today = new Date();
+      return today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+
+    function index(x, y) {
+      return y * gridSize + x;
+    }
+
+    function xy(i) {
+      return [i % gridSize, Math.floor(i / gridSize)];
+    }
+
+    function neighbors(i) {
+      const [x, y] = xy(i);
+      const result = [];
+      if (x > 0) result.push(index(x - 1, y));
+      if (x < gridSize - 1) result.push(index(x + 1, y));
+      if (y > 0) result.push(index(x, y - 1));
+      if (y < gridSize - 1) result.push(index(x, y + 1));
+      return result;
+    }
+
+    function defaultColoredCount(size) {
+      const totalCells = size * size;
+      return Math.floor(3 * totalCells / 16);
+    }
+
+    function defaultBlockerCount(size) {
+      const totalCells = size * size;
+      return Math.floor(totalCells / 16);
+    }
+
+    function updateCounters() {
+      greenCount = markerState.filter(state => state === 'green').length;
+      yellowCount = markerState.filter(state => state === 'yellow').length;
+      
+      greenCountDisplay.textContent = greenCount;
+      yellowCountDisplay.textContent = maxYellowMarkers - yellowCount;
+      
+      // Update yellow counter appearance if limit reached
+      if (yellowCount >= maxYellowMarkers) {
+        yellowCounterDiv.classList.add('limit-reached');
+      } else {
+        yellowCounterDiv.classList.remove('limit-reached');
+      }
+    }
+
+    function updateGridSize() {
+      gridSize = parseInt(gridSizeSelect.value, 10);
+      totalCells = gridSize * gridSize;
+      coloredCountInput.value = defaultColoredCount(gridSize);
+      blockerCountInput.value = defaultBlockerCount(gridSize);
+      createTodaysGrid();
+    }
+
+    function placeRandomCells(count, excludeSet) {
+      const result = new Set();
+      while (result.size < count) {
+        const i = Math.floor(rng.next() * totalCells);
+        if (!excludeSet.has(i)) result.add(i);
+      }
+      return result;
+    }
+
+    function createGrid(customSeed = null) {
+      let seed;
+      if (customSeed) {
+        seed = customSeed;
+        seedDisplay.innerText = `Seed: ${seed}`;
+      } else {
+        // Default to today's seed
+        seed = getTodaysSeed() + '-' + gridSize;
+        seedDisplay.innerText = `Daily seed: ${seed}`;
+      }
+      
+      rng = new SeededRNG(seed);
+
+      grid.style.gridTemplateColumns = `repeat(${gridSize}, 24px)`;
+      grid.innerHTML = '';
+      cells = [];
+      markerState = Array(totalCells).fill(null);
+      coloredCells = placeRandomCells(parseInt(coloredCountInput.value, 10), new Set());
+      blockerCells = placeRandomCells(parseInt(blockerCountInput.value, 10), coloredCells);
+
+      for (let i = 0; i < totalCells; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        if (coloredCells.has(i)) cell.classList.add('colored');
+        if (blockerCells.has(i)) cell.classList.add('blocker');
+
+        const overlay = document.createElement('div');
+        overlay.classList.add('marker-overlay');
+        cell.appendChild(overlay);
+
+        cell.addEventListener('click', e => {
+          e.preventDefault();
+          if (blockerCells.has(i)) return;
+          if (markerState[i] === 'green') {
+            markerState[i] = null;
+            cell.classList.remove('green');
+          } else {
+            markerState[i] = 'green';
+            cell.classList.remove('yellow');
+            cell.classList.add('green');
+          }
+          updateCounters();
+          updateGameState();
+        });
+
+        cell.addEventListener('contextmenu', e => {
+          e.preventDefault();
+          if (blockerCells.has(i)) return;
+          
+          // Check if we're trying to place a yellow marker when at limit
+          if (markerState[i] !== 'yellow' && yellowCount >= maxYellowMarkers) {
+            // Show denied animation
+            cell.classList.add('denied-yellow');
+            setTimeout(() => {
+              cell.classList.remove('denied-yellow');
+            }, 500);
+            return; // Prevent placing yellow marker if limit reached
+          }
+          
+          if (markerState[i] === 'yellow') {
+            markerState[i] = null;
+            cell.classList.remove('yellow');
+          } else {
+            markerState[i] = 'yellow';
+            cell.classList.remove('green');
+            cell.classList.add('yellow');
+          }
+          updateCounters();
+          updateGameState();
+        });
+
+        grid.appendChild(cell);
+        cells.push(cell);
+      }
+      updateCounters();
+      updateGameState();
+    }
+
+    function createRandomGrid() {
+      // Generate a random seed using current timestamp + random number
+      const randomSeed = Date.now() + '-' + Math.floor(Math.random() * 10000) + '-' + gridSize;
+      createGrid(randomSeed);
+    }
+
+    function createTodaysGrid() {
+      createGrid(); // Uses default today's seed
+    }
+
+    function clearMarkers() {
+      for (let i = 0; i < totalCells; i++) {
+        markerState[i] = null;
+        cells[i].classList.remove('green', 'yellow', 'invalid-top', 'invalid-bottom', 'invalid-left', 'invalid-right', 'too-small');
+      }
+      resultDiv.innerText = '';
+      updateCounters();
+      updateGameState();
+    }
+
+    function updateGameState() {
+      for (let cell of cells) {
+        cell.classList.remove('invalid-top', 'invalid-bottom', 'invalid-left', 'invalid-right', 'too-small');
+      }
+
+      let visited = new Array(totalCells).fill(false);
+      let clumps = [];
+
+      for (let i = 0; i < totalCells; i++) {
+        if (!visited[i] && (markerState[i] === 'green' || markerState[i] === 'yellow')) {
+          let queue = [i], clump = [], color = markerState[i];
+          visited[i] = true;
+
+          while (queue.length > 0) {
+            let curr = queue.pop();
+            clump.push(curr);
+
+            for (let n of neighbors(curr)) {
+              if (!visited[n] && markerState[n] === color) {
+                visited[n] = true;
+                queue.push(n);
+              }
+            }
+          }
+
+          clumps.push({ color, cells: clump });
+        }
+      }
+
+      // Red border for clumps > 12, blinking for clumps < 4
+      let valid = true;
+      for (let { cells: group } of clumps) {
+        if (group.length < 4) {
+          for (let i of group) {
+            cells[i].classList.add('too-small');
+          }
+          valid = false;
+        } else if (group.length > 12) {
+          for (let i of group) {
+            const [x, y] = xy(i);
+            for (let [dx, dy, cls] of [[0, -1, 'invalid-top'], [0, 1, 'invalid-bottom'], [-1, 0, 'invalid-left'], [1, 0, 'invalid-right']]) {
+              let nx = x + dx, ny = y + dy;
+              if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) {
+                cells[i].classList.add(cls);
+              } else {
+                let ni = index(nx, ny);
+                if (!group.includes(ni)) cells[i].classList.add(cls);
+              }
+            }
+          }
+          valid = false;
+        }
+      }
+
+      // Win check
+      let blueCovered = [...coloredCells].every(i => markerState[i] === 'green' || markerState[i] === 'yellow');
+      let blockerFree = [...blockerCells].every(i => markerState[i] === null);
+
+      if (valid && blueCovered && blockerFree) {
+        resultDiv.innerText = `🎉 Puzzle complete! Clumps used: ${clumps.length}, Markers used: ${markerState.filter(v => v).length}`;
+      } else {
+        resultDiv.innerText = '';
+      }
+    }
+
+    coloredCountInput.value = defaultColoredCount(gridSize);
+    blockerCountInput.value = defaultBlockerCount(gridSize);
+    createGrid();
+  </script>
+</body>
+</html>
