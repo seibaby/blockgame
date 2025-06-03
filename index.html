@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Clump Marker Game</title>
+  <title>Block Game</title>
   <style>
     body {
       font-family: sans-serif;
@@ -15,9 +15,42 @@
     #controls {
       margin-bottom: 10px;
     }
+    #marker-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 10px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 60px;
+      height: 30px;
+      background-color: green;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .toggle-switch.yellow {
+      background-color: gold;
+    }
+    .toggle-slider {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 24px;
+      height: 24px;
+      background-color: white;
+      border-radius: 50%;
+      transition: transform 0.3s ease;
+    }
+    .toggle-switch.yellow .toggle-slider {
+      transform: translateX(30px);
+    }
     #game-container {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 20px;
     }
     .counter {
@@ -143,14 +176,20 @@
     <button onclick="clearMarkers()">Clear All</button>
   </div>
   
-  <div id="game-container">
+  <div id="marker-toggle">
     <div class="counter green-counter">
       <div class="counter-value" id="green-count">0</div>
     </div>
-    <div id="grid"></div>
+    <div class="toggle-switch" id="color-toggle" onclick="toggleMarkerColor()">
+      <div class="toggle-slider"></div>
+    </div>
     <div class="counter yellow-counter" id="yellow-counter">
       <div class="counter-value" id="yellow-count">12</div>
     </div>
+  </div>
+  
+  <div id="game-container">
+    <div id="grid"></div>
   </div>
   
   <div id="result"></div>
@@ -177,6 +216,8 @@
     let greenCount = 0;
     let yellowCount = 0;
     const maxYellowMarkers = 12;
+    let currentMarkerColor = 'green'; // Track current marker color
+    const colorToggle = document.getElementById('color-toggle');
 
     // Simple seeded RNG using a Linear Congruential Generator
     class SeededRNG {
@@ -233,6 +274,15 @@
       return Math.floor(totalCells / 16);
     }
 
+    function toggleMarkerColor() {
+      currentMarkerColor = currentMarkerColor === 'green' ? 'yellow' : 'green';
+      if (currentMarkerColor === 'yellow') {
+        colorToggle.classList.add('yellow');
+      } else {
+        colorToggle.classList.remove('yellow');
+      }
+    }
+
     function updateCounters() {
       greenCount = markerState.filter(state => state === 'green').length;
       yellowCount = markerState.filter(state => state === 'yellow').length;
@@ -256,12 +306,129 @@
       createTodaysGrid();
     }
 
+    function getConnectedComponentSize(cellSet, startCell) {
+      const visited = new Set();
+      const queue = [startCell];
+      visited.add(startCell);
+      
+      while (queue.length > 0) {
+        const current = queue.shift();
+        
+        for (let neighbor of neighbors(current)) {
+          if (!visited.has(neighbor) && cellSet.has(neighbor)) {
+            visited.add(neighbor);
+            queue.push(neighbor);
+          }
+        }
+      }
+      
+      return visited.size;
+    }
+
+    function wouldCreateLargeComponent(cellSet, newCell, maxSize = 12) {
+      // Create a temporary set with the new cell added
+      const tempCells = new Set([...cellSet, newCell]);
+      
+      // Check if the new cell would be part of a component larger than maxSize
+      return getConnectedComponentSize(tempCells, newCell) > maxSize;
+    }
+
     function placeRandomCells(count, excludeSet) {
       const result = new Set();
-      while (result.size < count) {
-        const i = Math.floor(rng.next() * totalCells);
-        if (!excludeSet.has(i)) result.add(i);
+      const maxAttempts = count * 50; // Prevent infinite loops
+      let attempts = 0;
+      
+      while (result.size < count && attempts < maxAttempts) {
+        const candidate = Math.floor(rng.next() * totalCells);
+        attempts++;
+        
+        // Skip if cell is excluded or already selected
+        if (excludeSet.has(candidate) || result.has(candidate)) {
+          continue;
+        }
+        
+        // Check if adding this cell would create a component larger than 12
+        if (!wouldCreateLargeComponent(result, candidate, 12)) {
+          result.add(candidate);
+        }
       }
+      
+      return result;
+    }
+
+    function wouldCreateEnclosedSpace(blockerSet, newBlocker) {
+      // Create a temporary set with the new blocker added
+      const tempBlockers = new Set([...blockerSet, newBlocker]);
+      
+      // Find all non-blocker cells
+      const nonBlockerCells = [];
+      for (let i = 0; i < totalCells; i++) {
+        if (!tempBlockers.has(i)) {
+          nonBlockerCells.push(i);
+        }
+      }
+      
+      // Use flood fill to find connected components of non-blocker cells
+      const visited = new Set();
+      let componentCount = 0;
+      
+      for (let cell of nonBlockerCells) {
+        if (!visited.has(cell)) {
+          // Start a new flood fill from this cell
+          const queue = [cell];
+          visited.add(cell);
+          let canReachBorder = false;
+          
+          while (queue.length > 0) {
+            const current = queue.shift();
+            const [x, y] = xy(current);
+            
+            // Check if this cell is on the border
+            if (x === 0 || x === gridSize - 1 || y === 0 || y === gridSize - 1) {
+              canReachBorder = true;
+            }
+            
+            // Add unvisited neighbors to the queue
+            for (let neighbor of neighbors(current)) {
+              if (!visited.has(neighbor) && !tempBlockers.has(neighbor)) {
+                visited.add(neighbor);
+                queue.push(neighbor);
+              }
+            }
+          }
+          
+          componentCount++;
+          
+          // If we found a component that can't reach the border, it's enclosed
+          if (!canReachBorder) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    }
+
+    function placeBlockersWithoutEnclosing(count, excludeSet) {
+      const result = new Set();
+      const maxAttempts = count * 50; // Prevent infinite loops
+      let attempts = 0;
+      
+      while (result.size < count && attempts < maxAttempts) {
+        const candidate = Math.floor(rng.next() * totalCells);
+        attempts++;
+        
+        // Skip if cell is excluded or already a blocker
+        if (excludeSet.has(candidate) || result.has(candidate)) {
+          continue;
+        }
+        
+        // Check if adding this blocker would create an enclosed space
+        if (!wouldCreateEnclosedSpace(result, candidate)) {
+          result.add(candidate);
+        }
+      }
+      
       return result;
     }
 
@@ -283,7 +450,7 @@
       cells = [];
       markerState = Array(totalCells).fill(null);
       coloredCells = placeRandomCells(parseInt(coloredCountInput.value, 10), new Set());
-      blockerCells = placeRandomCells(parseInt(blockerCountInput.value, 10), coloredCells);
+      blockerCells = placeBlockersWithoutEnclosing(parseInt(blockerCountInput.value, 10), coloredCells);
 
       for (let i = 0; i < totalCells; i++) {
         const cell = document.createElement('div');
@@ -298,40 +465,38 @@
         cell.addEventListener('click', e => {
           e.preventDefault();
           if (blockerCells.has(i)) return;
-          if (markerState[i] === 'green') {
-            markerState[i] = null;
-            cell.classList.remove('green');
-          } else {
-            markerState[i] = 'green';
-            cell.classList.remove('yellow');
-            cell.classList.add('green');
-          }
-          updateCounters();
-          updateGameState();
-        });
-
-        cell.addEventListener('contextmenu', e => {
-          e.preventDefault();
-          if (blockerCells.has(i)) return;
           
-          // Check if we're trying to place a yellow marker when at limit
-          if (markerState[i] !== 'yellow' && yellowCount >= maxYellowMarkers) {
-            // Show denied animation
-            cell.classList.add('denied-yellow');
-            setTimeout(() => {
-              cell.classList.remove('denied-yellow');
-            }, 500);
-            return; // Prevent placing yellow marker if limit reached
+          if (currentMarkerColor === 'yellow') {
+            // Handle yellow marker placement
+            if (markerState[i] !== 'yellow' && yellowCount >= maxYellowMarkers) {
+              // Show denied animation
+              cell.classList.add('denied-yellow');
+              setTimeout(() => {
+                cell.classList.remove('denied-yellow');
+              }, 500);
+              return;
+            }
+            
+            if (markerState[i] === 'yellow') {
+              markerState[i] = null;
+              cell.classList.remove('yellow');
+            } else {
+              markerState[i] = 'yellow';
+              cell.classList.remove('green');
+              cell.classList.add('yellow');
+            }
+          } else {
+            // Handle green marker placement
+            if (markerState[i] === 'green') {
+              markerState[i] = null;
+              cell.classList.remove('green');
+            } else {
+              markerState[i] = 'green';
+              cell.classList.remove('yellow');
+              cell.classList.add('green');
+            }
           }
           
-          if (markerState[i] === 'yellow') {
-            markerState[i] = null;
-            cell.classList.remove('yellow');
-          } else {
-            markerState[i] = 'yellow';
-            cell.classList.remove('green');
-            cell.classList.add('yellow');
-          }
           updateCounters();
           updateGameState();
         });
