@@ -359,7 +359,7 @@
     function wouldCreateEnclosedSpace(blockerSet, newBlocker) {
       // Create a temporary set with the new blocker added
       const tempBlockers = new Set([...blockerSet, newBlocker]);
-      
+
       // Find all non-blocker cells
       const nonBlockerCells = [];
       for (let i = 0; i < totalCells; i++) {
@@ -367,45 +367,64 @@
           nonBlockerCells.push(i);
         }
       }
-      
+
       // Use flood fill to find connected components of non-blocker cells
       const visited = new Set();
-      let componentCount = 0;
-      
+
       for (let cell of nonBlockerCells) {
         if (!visited.has(cell)) {
           // Start a new flood fill from this cell
           const queue = [cell];
+          const component = new Set();
           visited.add(cell);
+          component.add(cell);
           let canReachBorder = false;
-          
+
           while (queue.length > 0) {
             const current = queue.shift();
             const [x, y] = xy(current);
-            
+
             // Check if this cell is on the border
             if (x === 0 || x === gridSize - 1 || y === 0 || y === gridSize - 1) {
               canReachBorder = true;
             }
-            
+
             // Add unvisited neighbors to the queue
             for (let neighbor of neighbors(current)) {
               if (!visited.has(neighbor) && !tempBlockers.has(neighbor)) {
                 visited.add(neighbor);
+                component.add(neighbor);
                 queue.push(neighbor);
               }
             }
           }
-          
-          componentCount++;
-          
-          // If we found a component that can't reach the border, it's enclosed
-          if (!canReachBorder) {
+
+          // Check if this component would create an unwinnable situation
+          if (!canReachBorder && component.size < 4) {
+            // If enclosed and too small, it's problematic
             return true;
+          }
+
+          // Also check if the component is small enough that it couldn't form valid clumps
+          // even if it's not fully enclosed (e.g., against border)
+          if (component.size < 4) {
+            // Check if this small component contains any blue target cells
+            let hasTargetCell = false;
+            for (let cellIndex of component) {
+              if (coloredCells.has(cellIndex)) {
+                hasTargetCell = true;
+                break;
+              }
+            }
+
+            // If it has target cells and is too small to form a valid clump, reject
+            if (hasTargetCell) {
+              return true;
+            }
           }
         }
       }
-      
+
       return false;
     }
 
