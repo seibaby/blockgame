@@ -10,10 +10,70 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: 20px;
+      margin: 0;
+      padding-top: 60px; /* Space for top bar */
     }
+    
+    /* Top Bar Styles */
+    #top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 50px;
+      background-color: white;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      gap: 30px;
+    }
+    
+    .top-bar-icon {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: background-color 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .top-bar-icon:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .icon-stats {
+      font-size: 18px;
+      font-weight: bold;
+      color: #666;
+    }
+    
+    .icon-help {
+      font-size: 20px;
+      font-weight: bold;
+      color: #666;
+      border: 2px solid #666;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: serif;
+    }
+    
+    .icon-settings {
+      font-size: 18px;
+      color: #666;
+    }
+    
     #controls {
       margin-bottom: 10px;
+      margin-top: 10px;
     }
     #marker-toggle {
       display: flex;
@@ -49,9 +109,101 @@
     }
     #game-container {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      position: relative;
+    }
+    
+    #marker-toggle {
+      display: flex;
       align-items: center;
       justify-content: center;
       gap: 20px;
+      margin-top: 20px;
+    }
+    
+    /* Score Display Styles */
+    #score-display {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      margin-bottom: 10px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      padding: 0 24px; /* Move counters inward by about one cell width */
+    }
+    
+    #score-display.visible {
+      opacity: 1;
+    }
+    
+    #score-left, #score-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    #shapes-count, #blocks-count {
+      font-size: 48px;
+      line-height: 1;
+      width: 80px;
+      text-align: center;
+    }
+    
+    #shapes-count {
+      font-weight: bold;
+    }
+    
+    #blocks-count {
+      font-family: monospace;
+      font-weight: normal;
+    }
+    
+    /* Default grey colors */
+    #shapes-count.grey {
+      color: #555; /* Dark grey - like green marked blue cells but grey */
+    }
+    
+    #blocks-count.grey {
+      color: #AAA; /* Light grey - like green marked white cells but grey */
+    }
+    
+    /* Green colors for no-yellow easter egg */
+    #shapes-count.green {
+      color: #006400; /* Dark green - like green marked blue cells */
+    }
+    
+    #blocks-count.green {
+      color: #90EE90; /* Light green - like green marked white cells */
+    }
+    
+    #shapes-label, #blocks-label {
+      font-size: 14px;
+      color: #666;
+      margin-top: 2px;
+    }
+    
+    #congratulatory-message {
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background-color: #555; /* Dark grey background - same as blockers */
+      padding: 8px 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+      white-space: nowrap;
+      width: 120px;
+      text-align: center;
+    }
+    
+    #congratulatory-message.visible {
+      opacity: 1;
     }
     .counter {
       text-align: center;
@@ -157,9 +309,488 @@
     #result {
       margin-top: 10px;
     }
+    
+    /* Full Page Splash Styles */
+    #splash-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      overflow: hidden;
+    }
+    
+    #splash-content {
+      text-align: center;
+      color: white;
+      max-width: 90%;
+      width: 100%;
+      padding: 20px;
+    }
+    
+    #game-logo {
+      display: grid;
+      grid-template-columns: repeat(3, 30px);
+      grid-template-rows: repeat(3, 30px);
+      gap: 3px;
+      margin: 0 auto 30px auto;
+      border-radius: 12px;
+      padding: 15px;
+      background-color: rgba(255, 255, 255, 0.2);
+      width: fit-content;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    
+    .logo-cell {
+      width: 30px;
+      height: 30px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 4px;
+    }
+    
+    /* How To Play Modal Styles */
+    #howto-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    
+    #howto-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      text-align: left;
+      position: relative;
+    }
+    
+    #howto-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    #howto-subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+    
+    .howto-rule {
+      margin-bottom: 8px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    .howto-examples-title {
+      font-weight: bold;
+      font-size: 14px;
+      margin: 20px 0 15px 0;
+      color: #333;
+    }
+    
+    .howto-example {
+      margin-bottom: 20px;
+    }
+    
+    .example-shape {
+      display: grid;
+      gap: 1px;
+      margin-bottom: 8px;
+      width: fit-content;
+    }
+    
+    .example-cell {
+      width: 16px;
+      height: 16px;
+      border: 1px solid #333;
+      box-sizing: border-box;
+    }
+    
+    .example-green {
+      background-color: white;
+      position: relative;
+    }
+    
+    .example-green::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: green;
+      opacity: 0.5;
+    }
+    
+    .example-white {
+      background-color: white;
+    }
+    
+    .example-description {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.3;
+    }
+    
+    .example-blue {
+      background-color: #4682B4;
+    }
+    
+    .example-green-blue {
+      background-color: #4682B4;
+      position: relative;
+    }
+    
+    .example-green-blue::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: green;
+      opacity: 0.5;
+    }
+    
+    .example-blink {
+      animation: exampleBlink 1s infinite;
+    }
+    
+    @keyframes exampleBlink {
+      0%, 100% { 
+        background-color: white;
+      }
+      50% { 
+        background-color: white;
+      }
+    }
+    
+    .example-blink::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: green;
+      animation: exampleBlinkOverlay 1s infinite;
+    }
+    
+    @keyframes exampleBlinkOverlay {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 0.2; }
+    }
+    
+    /* Red outline styles for example - only on edges that border white cells */
+    .example-red-outline-top {
+      border-top: 2px solid red !important;
+    }
+    
+    .example-red-outline-bottom {
+      border-bottom: 2px solid red !important;
+    }
+    
+    .example-red-outline-left {
+      border-left: 2px solid red !important;
+    }
+    
+    .example-red-outline-right {
+      border-right: 2px solid red !important;
+    }
+    
+    #howto-close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #666;
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+    }
+    
+    #howto-close-btn:hover {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    
+    .logo-green {
+      background-color: #4CAF50;
+      opacity: 0.8;
+    }
+    
+    .logo-yellow {
+      background-color: #FFD700;
+      opacity: 0.8;
+    }
+    
+    .logo-grey {
+      background-color: #666;
+      opacity: 0.8;
+    }
+    
+    .logo-white {
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    #game-title {
+      font-size: 4rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      letter-spacing: 2px;
+    }
+    
+    #game-description {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+      line-height: 1.5;
+      opacity: 0.9;
+    }
+    
+    #play-button {
+      background: linear-gradient(45deg, #4CAF50, #45a049);
+      color: white;
+      border: none;
+      padding: 20px 50px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      margin-bottom: 30px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    #play-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+      background: linear-gradient(45deg, #45a049, #4CAF50);
+    }
+    
+    #play-button:active {
+      transform: translateY(0);
+    }
+    
+    #game-info {
+      font-size: 1rem;
+      opacity: 0.8;
+      line-height: 1.4;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #game-title {
+        font-size: 3rem;
+      }
+      
+      #game-description {
+        font-size: 1rem;
+        margin-bottom: 30px;
+      }
+      
+      #play-button {
+        padding: 15px 40px;
+        font-size: 1.2rem;
+      }
+      
+      .logo-cell {
+        width: 25px;
+        height: 25px;
+      }
+      
+      #game-logo {
+        grid-template-columns: repeat(3, 25px);
+        grid-template-rows: repeat(3, 25px);
+        gap: 2px;
+        padding: 12px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      #game-title {
+        font-size: 2.5rem;
+      }
+      
+      #splash-content {
+        padding: 15px;
+      }
+    }
   </style>
 </head>
 <body>
+  <!-- Full Page Splash -->
+  <div id="splash-overlay">
+    <div id="splash-content">
+      <div id="game-logo">
+        <div class="logo-cell logo-green"></div>
+        <div class="logo-cell logo-green"></div>
+        <div class="logo-cell logo-yellow"></div>
+        <div class="logo-cell logo-green"></div>
+        <div class="logo-cell logo-grey"></div>
+        <div class="logo-cell logo-yellow"></div>
+        <div class="logo-cell logo-green"></div>
+        <div class="logo-cell logo-yellow"></div>
+        <div class="logo-cell logo-yellow"></div>
+      </div>
+      
+      <div id="game-title">Shapely</div>
+      
+      <div id="game-description">
+        Place blocks to form shapes and cover the blue blocks.
+      </div>
+      
+      <button id="play-button" onclick="closeSplash()">Play</button>
+      
+      <div id="game-info">
+        <div id="current-date"></div>
+        <div id="game-number"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Bar -->
+  <div id="top-bar">
+    <div class="top-bar-icon" onclick="showStats()" title="Statistics">
+      <div class="icon-stats">|||</div>
+    </div>
+    <div class="top-bar-icon" onclick="showHowTo()" title="How to Play">
+      <div class="icon-help">?</div>
+    </div>
+    <div class="top-bar-icon" onclick="showSettings()" title="Settings">
+      <div class="icon-settings">⚙</div>
+    </div>
+  </div>
+
+  <!-- How To Play Modal -->
+  <div id="howto-overlay">
+    <div id="howto-content">
+      <button id="howto-close-btn" onclick="closeHowTo()">×</button>
+      
+      <div id="howto-title">How To Play</div>
+      <div id="howto-subtitle">Cover the blue blocks with your shapes.</div>
+      
+      <ul style="padding-left: 20px; margin: 0;">
+        <li class="howto-rule">Place green or yellow blocks on the board</li>
+        <li class="howto-rule">Same-color blocks connect to form a shape</li>
+        <li class="howto-rule">Shapes must be 4-12 blocks in size</li>
+      </ul>
+      
+      <div class="howto-examples-title">Examples</div>
+      
+      <div class="howto-example">
+        <div class="example-shape" style="grid-template-columns: repeat(9, 16px); grid-template-rows: repeat(3, 16px);">
+          <!-- Row 1 (top) -->
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green-blue"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green-blue"></div>
+          <!-- Row 2 (middle) -->
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <!-- Row 3 (bottom) -->
+          <div class="example-cell example-green-blue"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green-blue"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+        </div>
+        <div class="example-description">All connected and no more than 12 blocks.</div>
+      </div>
+      
+      <div class="howto-example">
+        <div class="example-shape" style="grid-template-columns: repeat(2, 16px); grid-template-rows: repeat(2, 16px);">
+          <div class="example-cell example-green example-blink"></div>
+          <div class="example-cell example-green example-blink"></div>
+          <div class="example-cell example-green example-blink"></div>
+          <div class="example-cell example-white"></div>
+        </div>
+        <div class="example-description">Fewer than 4 connected blocks is too small.</div>
+      </div>
+      
+      <div class="howto-example">
+        <div class="example-shape" style="grid-template-columns: repeat(9, 16px); grid-template-rows: repeat(3, 16px);">
+          <!-- Row A (top) -->
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green-blue example-red-outline-top example-red-outline-left"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-right"></div>
+          <!-- Row B (middle) -->
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green example-red-outline-left example-red-outline-right"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green example-red-outline-right example-red-outline-left"></div>
+          <!-- Row C (bottom) -->
+          <div class="example-cell example-green-blue example-red-outline-bottom example-red-outline-left example-red-outline-top"></div>
+          <div class="example-cell example-green example-red-outline-bottom example-red-outline-top"></div>
+          <div class="example-cell example-green example-red-outline-bottom example-red-outline-top"></div>
+          <div class="example-cell example-green example-red-outline-bottom example-red-outline-top"></div>
+          <div class="example-cell example-green-blue example-red-outline-bottom example-red-outline-right"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green-blue example-red-outline-bottom example-red-outline-right example-red-outline-left"></div>
+        </div>
+        <div class="example-description">More than 12 connected blocks is too big.</div>
+      </div>
+    </div>
+  </div>
+
   <div id="controls">
     <label for="gridSizeSelect">Grid Size:</label>
     <select id="gridSizeSelect" onchange="updateGridSize()">
@@ -176,6 +807,26 @@
     <button onclick="clearMarkers()">Clear All</button>
   </div>
   
+  <div id="game-container">
+    <!-- Score display that appears above the grid -->
+    <div id="score-display">
+      <div id="score-left">
+        <div id="shapes-count">0</div>
+        <div id="shapes-label">Shapes</div>
+      </div>
+      
+      <div id="congratulatory-message">Amazing</div>
+      
+      <div id="score-right">
+        <div id="blocks-count">0</div>
+        <div id="blocks-label">Blocks</div>
+      </div>
+    </div>
+    
+    <div id="grid"></div>
+  </div>
+  
+  <!-- Move marker toggle below the grid -->
   <div id="marker-toggle">
     <div class="counter green-counter">
       <div class="counter-value" id="green-count">0</div>
@@ -188,18 +839,12 @@
     </div>
   </div>
   
-  <div id="game-container">
-    <div id="grid"></div>
-  </div>
-  
-  <div id="result"></div>
   <div id="seedDisplay"></div>
 
   <script>
     let gridSize = 16;
     let totalCells = gridSize * gridSize;
     const grid = document.getElementById('grid');
-    const resultDiv = document.getElementById('result');
     const seedDisplay = document.getElementById('seedDisplay');
     const coloredCountInput = document.getElementById('coloredCountInput');
     const blockerCountInput = document.getElementById('blockerCountInput');
@@ -218,6 +863,7 @@
     const maxYellowMarkers = 12;
     let currentMarkerColor = 'green'; // Track current marker color
     const colorToggle = document.getElementById('color-toggle');
+    let bestShapeScore = null; // Track best shape score for the day
 
     // Simple seeded RNG using a Linear Congruential Generator
     class SeededRNG {
@@ -244,6 +890,43 @@
     function getTodaysSeed() {
       const today = new Date();
       return today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    }
+
+    function closeSplash() {
+      document.getElementById('splash-overlay').style.display = 'none';
+    }
+
+    function showHowTo() {
+      document.getElementById('howto-overlay').style.display = 'flex';
+    }
+
+    function closeHowTo() {
+      document.getElementById('howto-overlay').style.display = 'none';
+    }
+
+    function showStats() {
+      // TODO: Show statistics modal
+      console.log('Show statistics');
+    }
+
+    function showSettings() {
+      // TODO: Show settings modal
+      console.log('Show settings');
+    }
+
+    function initializeSplashPage() {
+      const today = new Date();
+      const options = { year: 'numeric', month: 'long', day: 'numeric' };
+      const formattedDate = today.toLocaleDateString('en-US', options);
+      
+      // Calculate game number (days since start date)
+      // For testing, start date is yesterday, so game is always 0
+      const startDate = new Date(today);
+      startDate.setDate(startDate.getDate() - 1);
+      const daysDiff = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+      
+      document.getElementById('current-date').textContent = formattedDate;
+      document.getElementById('game-number').textContent = `Game ${daysDiff}`;
     }
 
     function index(x, y) {
@@ -359,7 +1042,7 @@
     function wouldCreateEnclosedSpace(blockerSet, newBlocker) {
       // Create a temporary set with the new blocker added
       const tempBlockers = new Set([...blockerSet, newBlocker]);
-
+      
       // Find all non-blocker cells
       const nonBlockerCells = [];
       for (let i = 0; i < totalCells; i++) {
@@ -367,10 +1050,10 @@
           nonBlockerCells.push(i);
         }
       }
-
+      
       // Use flood fill to find connected components of non-blocker cells
       const visited = new Set();
-
+      
       for (let cell of nonBlockerCells) {
         if (!visited.has(cell)) {
           // Start a new flood fill from this cell
@@ -379,16 +1062,16 @@
           visited.add(cell);
           component.add(cell);
           let canReachBorder = false;
-
+          
           while (queue.length > 0) {
             const current = queue.shift();
             const [x, y] = xy(current);
-
+            
             // Check if this cell is on the border
             if (x === 0 || x === gridSize - 1 || y === 0 || y === gridSize - 1) {
               canReachBorder = true;
             }
-
+            
             // Add unvisited neighbors to the queue
             for (let neighbor of neighbors(current)) {
               if (!visited.has(neighbor) && !tempBlockers.has(neighbor)) {
@@ -398,13 +1081,13 @@
               }
             }
           }
-
+          
           // Check if this component would create an unwinnable situation
           if (!canReachBorder && component.size < 4) {
             // If enclosed and too small, it's problematic
             return true;
           }
-
+          
           // Also check if the component is small enough that it couldn't form valid clumps
           // even if it's not fully enclosed (e.g., against border)
           if (component.size < 4) {
@@ -416,7 +1099,7 @@
                 break;
               }
             }
-
+            
             // If it has target cells and is too small to form a valid clump, reject
             if (hasTargetCell) {
               return true;
@@ -424,7 +1107,7 @@
           }
         }
       }
-
+      
       return false;
     }
 
@@ -461,6 +1144,9 @@
         seed = getTodaysSeed() + '-' + gridSize;
         seedDisplay.innerText = `Daily seed: ${seed}`;
       }
+      
+      // Reset best score for new game
+      bestShapeScore = null;
       
       rng = new SeededRNG(seed);
 
@@ -542,7 +1228,6 @@
         markerState[i] = null;
         cells[i].classList.remove('green', 'yellow', 'invalid-top', 'invalid-bottom', 'invalid-left', 'invalid-right', 'too-small');
       }
-      resultDiv.innerText = '';
       updateCounters();
       updateGameState();
     }
@@ -606,14 +1291,80 @@
       let blockerFree = [...blockerCells].every(i => markerState[i] === null);
 
       if (valid && blueCovered && blockerFree) {
-        resultDiv.innerText = `🎉 Puzzle complete! Clumps used: ${clumps.length}, Markers used: ${markerState.filter(v => v).length}`;
+        showScoreOverlay(clumps.length, markerState.filter(v => v).length);
       } else {
-        resultDiv.innerText = '';
+        hideScoreOverlay();
       }
+    }
+
+    function showScoreOverlay(shapesUsed, blocksUsed) {
+      // Check if this is a new best score (lower shapes is better)
+      const isNewBest = bestShapeScore === null || shapesUsed < bestShapeScore;
+      
+      // Update best score if this is better
+      if (isNewBest) {
+        bestShapeScore = shapesUsed;
+      }
+
+      // Determine message based on shapes used
+      let message;
+      if (shapesUsed <= 7) {
+        message = "Amazing";
+      } else if (shapesUsed === 8) {
+        message = "Great";
+      } else if (shapesUsed === 9) {
+        message = "Not bad";
+      } else {
+        message = "You did it";
+      }
+
+      // Check if any yellow blocks were placed (easter egg)
+      const yellowUsed = markerState.some(state => state === 'yellow');
+      const colorClass = yellowUsed ? 'grey' : 'green';
+
+      // Update the content
+      document.getElementById('shapes-count').textContent = shapesUsed;
+      document.getElementById('blocks-count').textContent = blocksUsed.toString();
+      document.getElementById('congratulatory-message').textContent = message;
+
+      // Apply color classes for easter egg
+      const shapesCount = document.getElementById('shapes-count');
+      const blocksCount = document.getElementById('blocks-count');
+      
+      // Remove existing color classes
+      shapesCount.classList.remove('grey', 'green');
+      blocksCount.classList.remove('grey', 'green');
+      
+      // Add appropriate color class
+      shapesCount.classList.add(colorClass);
+      blocksCount.classList.add(colorClass);
+
+      // Show the score display (stays visible)
+      const scoreDisplay = document.getElementById('score-display');
+      scoreDisplay.classList.add('visible');
+
+      // Only show congratulatory message for new best scores
+      if (isNewBest) {
+        const congratsMessage = document.getElementById('congratulatory-message');
+        congratsMessage.classList.add('visible');
+
+        // Hide the congratulatory message after 3.75 seconds (25% reduction from 5s)
+        setTimeout(() => {
+          congratsMessage.classList.remove('visible');
+        }, 3750);
+      }
+    }
+
+    function hideScoreOverlay() {
+      const scoreDisplay = document.getElementById('score-display');
+      const congratsMessage = document.getElementById('congratulatory-message');
+      scoreDisplay.classList.remove('visible');
+      congratsMessage.classList.remove('visible');
     }
 
     coloredCountInput.value = defaultColoredCount(gridSize);
     blockerCountInput.value = defaultBlockerCount(gridSize);
+    initializeSplashPage();
     createGrid();
   </script>
 </body>
