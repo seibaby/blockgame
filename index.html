@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Block Game</title>
+  <title>Shapely</title>
   <style>
     body {
       font-family: sans-serif;
@@ -70,11 +70,7 @@
       font-size: 18px;
       color: #666;
     }
-    
-    #controls {
-      margin-bottom: 10px;
-      margin-top: 10px;
-    }
+
     #marker-toggle {
       display: flex;
       align-items: center;
@@ -298,16 +294,37 @@
       0% { opacity: 0.5; }
       100% { opacity: 0; }
     }
-    #coloredCountInput, #blockerCountInput {
-      width: 40px;
-    }
-    #seedDisplay {
-      margin-top: 10px;
-      font-size: 12px;
+
+    /* Clear All Button Styles */
+    #clear-button {
+      background: linear-gradient(45deg, #e0e0e0, #d0d0d0);
       color: #666;
+      border: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      letter-spacing: 0.5px;
+      margin-bottom: 10px;
+      opacity: 1;
     }
-    #result {
-      margin-top: 10px;
+    
+    #clear-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: linear-gradient(45deg, #d0d0d0, #e0e0e0);
+    }
+    
+    #clear-button.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    #clear-button:active {
+      transform: translateY(0);
     }
     
     /* Full Page Splash Styles */
@@ -566,9 +583,19 @@
     #game-title {
       font-size: 4rem;
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
       letter-spacing: 2px;
+    }
+    
+    #beta-label {
+      font-size: 1.2rem;
+      font-weight: normal;
+      margin-bottom: 30px;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+      opacity: 0.8;
+      letter-spacing: 3px;
+      text-transform: uppercase;
     }
     
     #game-description {
@@ -668,6 +695,7 @@
       </div>
       
       <div id="game-title">Shapely</div>
+      <div id="beta-label">Beta</div>
       
       <div id="game-description">
         Place blocks to form shapes and cover the blue blocks.
@@ -684,13 +712,13 @@
 
   <!-- Top Bar -->
   <div id="top-bar">
-    <div class="top-bar-icon" onclick="showStats()" title="Statistics">
+    <div class="top-bar-icon" onclick="showStats()" title="Coming soon">
       <div class="icon-stats">|||</div>
     </div>
     <div class="top-bar-icon" onclick="showHowTo()" title="How to Play">
       <div class="icon-help">?</div>
     </div>
-    <div class="top-bar-icon" onclick="showSettings()" title="Settings">
+    <div class="top-bar-icon" onclick="showSettings()" title="Coming soon">
       <div class="icon-settings">⚙</div>
     </div>
   </div>
@@ -792,26 +820,19 @@
         </div>
         <div class="example-description">More than 12 connected blocks is too big.</div>
       </div>
+      
+      <!-- Daily puzzle info -->
+      <hr style="border: none; border-top: 1px solid #ddd; margin: 25px 0 15px 0;">
+      <div style="font-size: 14px; color: #666; text-align: center;">
+        A new puzzle is released daily at midnight.
+      </div>
     </div>
   </div>
 
-  <div id="controls">
-    <label for="gridSizeSelect">Grid Size:</label>
-    <select id="gridSizeSelect" onchange="updateGridSize()">
-      <option value="8">8x8</option>
-      <option value="12">12x12</option>
-      <option value="16" selected>16x16</option>
-      <option value="20">20x20</option>
-      <option value="24">24x24</option>
-    </select>
-    <input id="coloredCountInput" type="number" min="1" max="576" />
-    <input id="blockerCountInput" type="number" min="0" max="576" />
-    <button onclick="createRandomGrid()">New Game</button>
-    <button onclick="createTodaysGrid()">Today's Game</button>
-    <button onclick="clearMarkers()">Clear All</button>
-  </div>
-  
   <div id="game-container">
+    <!-- Clear All Button - positioned above grid -->
+    <button id="clear-button" onclick="clearMarkers()">Clear All</button>
+    
     <!-- Score display that appears above the grid -->
     <div id="score-display">
       <div id="score-left">
@@ -842,17 +863,11 @@
       <div class="counter-value" id="yellow-count">12</div>
     </div>
   </div>
-  
-  <div id="seedDisplay"></div>
 
   <script>
     let gridSize = 16;
     let totalCells = gridSize * gridSize;
     const grid = document.getElementById('grid');
-    const seedDisplay = document.getElementById('seedDisplay');
-    const coloredCountInput = document.getElementById('coloredCountInput');
-    const blockerCountInput = document.getElementById('blockerCountInput');
-    const gridSizeSelect = document.getElementById('gridSizeSelect');
     const greenCountDisplay = document.getElementById('green-count');
     const yellowCountDisplay = document.getElementById('yellow-count');
     const yellowCounterDiv = document.getElementById('yellow-counter');
@@ -915,12 +930,12 @@
 
     function showStats() {
       // TODO: Show statistics modal
-      console.log('Show statistics');
+      console.log('Show statistics - Coming soon');
     }
 
     function showSettings() {
       // TODO: Show settings modal
-      console.log('Show settings');
+      console.log('Show settings - Coming soon');
     }
 
     function initializeSplashPage() {
@@ -928,14 +943,12 @@
       const options = { year: 'numeric', month: 'long', day: 'numeric' };
       const formattedDate = today.toLocaleDateString('en-US', options);
       
-      // Calculate game number (days since start date)
-      // For testing, start date is yesterday, so game is always 0
-      const startDate = new Date(today);
-      startDate.setDate(startDate.getDate() - 1);
-      const daysDiff = Math.floor((today - startDate) / (1000 * 60 * 60 * 24));
+      // Calculate game number starting from June 12, 2025 (game 1)
+      const startDate = new Date('2025-06-12');
+      const daysDiff = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
       
       document.getElementById('current-date').textContent = formattedDate;
-      document.getElementById('game-number').textContent = `Game ${daysDiff}`;
+      document.getElementById('game-number').textContent = `No. ${daysDiff}`;
     }
 
     function index(x, y) {
@@ -988,14 +1001,6 @@
       } else {
         yellowCounterDiv.classList.remove('limit-reached');
       }
-    }
-
-    function updateGridSize() {
-      gridSize = parseInt(gridSizeSelect.value, 10);
-      totalCells = gridSize * gridSize;
-      coloredCountInput.value = defaultColoredCount(gridSize);
-      blockerCountInput.value = defaultBlockerCount(gridSize);
-      createTodaysGrid();
     }
 
     function getConnectedComponentSize(cellSet, startCell) {
@@ -1143,16 +1148,9 @@
       return result;
     }
 
-    function createGrid(customSeed = null) {
-      let seed;
-      if (customSeed) {
-        seed = customSeed;
-        seedDisplay.innerText = `Seed: ${seed}`;
-      } else {
-        // Default to today's seed
-        seed = getTodaysSeed() + '-' + gridSize;
-        seedDisplay.innerText = `Daily seed: ${seed}`;
-      }
+    function createGrid() {
+      // Use today's seed for the daily puzzle
+      const seed = getTodaysSeed() + '-' + gridSize;
       
       // Reset best score for new game
       bestShapeScore = null;
@@ -1163,8 +1161,8 @@
       grid.innerHTML = '';
       cells = [];
       markerState = Array(totalCells).fill(null);
-      coloredCells = placeRandomCells(parseInt(coloredCountInput.value, 10), new Set());
-      blockerCells = placeBlockersWithoutEnclosing(parseInt(blockerCountInput.value, 10), coloredCells);
+      coloredCells = placeRandomCells(defaultColoredCount(gridSize), new Set());
+      blockerCells = placeBlockersWithoutEnclosing(defaultBlockerCount(gridSize), coloredCells);
 
       for (let i = 0; i < totalCells; i++) {
         const cell = document.createElement('div');
@@ -1220,16 +1218,6 @@
       }
       updateCounters();
       updateGameState();
-    }
-
-    function createRandomGrid() {
-      // Generate a random seed using current timestamp + random number
-      const randomSeed = Date.now() + '-' + Math.floor(Math.random() * 10000) + '-' + gridSize;
-      createGrid(randomSeed);
-    }
-
-    function createTodaysGrid() {
-      createGrid(); // Uses default today's seed
     }
 
     function clearMarkers() {
@@ -1371,8 +1359,6 @@
       congratsMessage.classList.remove('visible');
     }
 
-    coloredCountInput.value = defaultColoredCount(gridSize);
-    blockerCountInput.value = defaultBlockerCount(gridSize);
     initializeSplashPage();
     createGrid();
   </script>
