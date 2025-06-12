@@ -455,6 +455,10 @@
       background-color: #4682B4;
     }
     
+    .example-blocker {
+      background-color: #555;
+    }
+    
     .example-green-blue {
       background-color: #4682B4;
       position: relative;
@@ -709,36 +713,36 @@
       
       <div class="howto-example">
         <div class="example-shape" style="grid-template-columns: repeat(9, 16px); grid-template-rows: repeat(3, 16px);">
-          <!-- Row 1 (top) -->
+          <!-- Row A (top) -->
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <!-- Row B (middle) -->
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-blocker"></div>
+          <div class="example-cell example-green"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
+          <!-- Row C (bottom) -->
           <div class="example-cell example-green-blue"></div>
           <div class="example-cell example-green"></div>
           <div class="example-cell example-green"></div>
           <div class="example-cell example-green"></div>
           <div class="example-cell example-green-blue"></div>
-          <!-- Row 2 (middle) -->
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-green"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <!-- Row 3 (bottom) -->
-          <div class="example-cell example-green-blue"></div>
-          <div class="example-cell example-green"></div>
-          <div class="example-cell example-green"></div>
-          <div class="example-cell example-green"></div>
+          <div class="example-cell example-blocker"></div>
           <div class="example-cell example-green-blue"></div>
           <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
+          <div class="example-cell example-blue"></div>
         </div>
         <div class="example-description">All connected and no more than 12 blocks.</div>
       </div>
@@ -760,31 +764,31 @@
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
-          <div class="example-cell example-green-blue example-red-outline-top example-red-outline-left"></div>
-          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
-          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-left"></div>
           <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
           <div class="example-cell example-green example-red-outline-top example-red-outline-right"></div>
+          <div class="example-cell example-white"></div>
+          <div class="example-cell example-white"></div>
           <!-- Row B (middle) -->
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-green example-red-outline-left example-red-outline-right"></div>
+          <div class="example-cell example-blocker"></div>
+          <div class="example-cell example-green example-red-outline-left example-red-outline-right"></div>
           <div class="example-cell example-white"></div>
           <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-green example-red-outline-right example-red-outline-left"></div>
           <!-- Row C (bottom) -->
-          <div class="example-cell example-green-blue example-red-outline-bottom example-red-outline-left example-red-outline-top"></div>
-          <div class="example-cell example-green example-red-outline-bottom example-red-outline-top"></div>
-          <div class="example-cell example-green example-red-outline-bottom example-red-outline-top"></div>
-          <div class="example-cell example-green example-red-outline-bottom example-red-outline-top"></div>
+          <div class="example-cell example-green-blue example-red-outline-top example-red-outline-left example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
           <div class="example-cell example-green-blue example-red-outline-bottom example-red-outline-right"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-white"></div>
-          <div class="example-cell example-green-blue example-red-outline-bottom example-red-outline-right example-red-outline-left"></div>
+          <div class="example-cell example-blocker"></div>
+          <div class="example-cell example-green-blue example-red-outline-left example-red-outline-bottom"></div>
+          <div class="example-cell example-green example-red-outline-top example-red-outline-bottom"></div>
+          <div class="example-cell example-green-blue example-red-outline-top example-red-outline-right example-red-outline-bottom"></div>
         </div>
         <div class="example-description">More than 12 connected blocks is too big.</div>
       </div>
@@ -894,6 +898,11 @@
 
     function closeSplash() {
       document.getElementById('splash-overlay').style.display = 'none';
+      // Show How To Play on first visit
+      if (!localStorage.getItem('hasPlayedBefore')) {
+        showHowTo();
+        localStorage.setItem('hasPlayedBefore', 'true');
+      }
     }
 
     function showHowTo() {
